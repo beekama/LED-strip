@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>LOLOL</title>
+        <script>
+            function mode_1(){
+                fetch (window.location.origin + "/API" + "?mode=mode_1")
+            }    
+            function mode_2(){
+                fetch (window.location.origin + "/API" + "?mode=mode_2")
+            }    
+        </script> 
+    </head>
+    <body>
+        <div>
+            <button onclick="mode_1()"> mode 1 </button>
+            <button onclick="mode_2()"> mode 2 </button>
+        </div>
+    </body>
+</html>
+
