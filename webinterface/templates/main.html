@@ -9,13 +9,21 @@
             function mode_2(){
                 fetch (window.location.origin + "/API" + "?mode=mode_2")
             }    
+            function rgb(rgb){
+                fetch (window.location.origin + "/API" + "?mode=rgb")
+            }        
         </script> 
     </head>
     <body>
         <div>
             <button onclick="mode_1()"> mode 1 </button>
             <button onclick="mode_2()"> mode 2 </button>
+            <form action="/API" >
+                <input type="text" name="mode">
+                <input type="submit">
+            </form>
         </div>
     </body>
 </html>
+
 
