@@ -100,15 +100,52 @@ void loop(){
       char data[BUFFER_LEN];
       extract_data(buffer, data);
 
+      //await rgb-values:
+      //rgbRRRGGGBBB
+      if(strlen(data) > 0 && data[0] == 'r' && data[1] == 'g' && data[2] == 'b'){
+        int red = ASCII_to_Int(data[3])*100 + ASCII_to_Int(data[4])*10 + ASCII_to_Int(data[5]);
+        int green = ASCII_to_Int(data[6])*100 + ASCII_to_Int(data[7])*10 + ASCII_to_Int(data[8]);
+        int blue = ASCII_to_Int(data[9])*100 + ASCII_to_Int(data[10]) + ASCII_to_Int(data[11]);
+        Serial.print("[3] ");
+        Serial.print(data[3]);
+        Serial.print(" - ");
+        Serial.println(int(data[3]));
+        Serial.print("red");
+        Serial.println(red);
+        Serial.print("green");
+        Serial.println(green);
+        Serial.print("blue");
+        Serial.println(blue);                
+        set_led_color(red, green, blue);
+      }
+
+      //await mode:
       if(strlen(data) > 0 && data[0] == 'A'){
         mode_1();
-      }else{
+      }else if (strlen(data) > 0 && data[0] == 'B'){
         mode_2();
       }
       
     }
     client.stop();
   }      
+}
+
+/* parse ASCII-character to Integer */
+int ASCII_to_Int(char c){
+  switch (int(c)){
+    case 48: return 0;
+    case 49: return 1;
+    case 50: return 2;
+    case 51: return 3;
+    case 52: return 4;
+    case 53: return 5;
+    case 54: return 6;
+    case 55: return 7;
+    case 56: return 8;
+    case 57: return 9;
+    default: return 0;
+  }
 }
 
 void extract_data(char* httpFull, char* extractedDataBuffer){
