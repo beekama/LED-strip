@@ -1,27 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>LOLOL</title>
+        <title>LED-Interface</title>
         <script>
+            /* buttons - send 'mode' for predefined functions */
             function mode_1(){
                 fetch (window.location.origin + "/API" + "?mode=mode_1")
             }    
             function mode_2(){
                 fetch (window.location.origin + "/API" + "?mode=mode_2")
             }    
-            function rgb(rgb){
-                fetch (window.location.origin + "/API" + "?mode=rgb")
-            }        
         </script> 
+        <script type="text/javascript" src="{{ url_for('static', filename = 'jscolor.js') }}">
+        </script>
     </head>
     <body>
         <div>
+            <!-- buttons - for predefined functions  -->
             <button onclick="mode_1()"> mode 1 </button>
             <button onclick="mode_2()"> mode 2 </button>
-            <form action="/API" >
-                <input type="text" name="mode">
-                <input type="submit">
-            </form>
+            <p id="test" >
+            </p>
+            <p>
+                <!-- input - for color picking -->
+                Choose a beautiful color!^^ :
+                <input id="colorpicker" data-jscolor="{preset:'large dark', value:'rgba(255,200,50,0.8)', onChange:'set_picker(this)'}" name="mode"></input>
+                <input id="cp_submit" type="submit" onclick="send_rgb_mode()"></input>
+            </p>
+            <script>
+                /* input-functions - send rgb-mode */
+                var picker;
+                function set_picker(thisPicker){
+                    picker = thisPicker;
+                }
+                function send_rgb_mode() {
+                    fetch (window.location.origin + '/API' + "?mode=rgb" + get_rgb_string(Math.round(picker.channels.r)) + get_rgb_string(Math.round(picker.channels.g)) + get_rgb_string(Math.round(picker.channels.b))) }
+                function get_rgb_string(colorChannel){
+                    if (colorChannel < 10){
+                        return "00"+colorChannel;
+                    } else if (colorChannel < 100){
+                        return "0" + colorChannel;
+                    } else{
+                        return colorChannel;
+                    }
+                }
+            </script>
         </div>
     </body>
 </html>
