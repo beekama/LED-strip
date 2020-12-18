@@ -15,6 +15,10 @@
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
+// network credentials
+#include "password.h"
+const char *password = WIFI_PASSWORD;
+const char* ssid = "wlan-antenne";
 
 /* ## basic settings LED ## */
 
@@ -31,9 +35,7 @@ Adafruit_NeoPixel pixels(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 /* ## basic settings SERVER ## */
 
-// network credentials
-const char* ssid = "wlan-antenne";
-const char* password = "Dx%3am2?PqZ=1";
+
 
 // create server that listens on port @parameter:
 WiFiServer server(80);
