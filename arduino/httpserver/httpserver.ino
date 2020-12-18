@@ -22,6 +22,8 @@
 #define LED_COUNT     300             //number of leds
 #define DELAYVAL      500                  //delayvalue between state transitions
 
+
+
 // Declare our NeoPixel strip object:
 // args: number of leds, datapin, pixel type flags (gbr-bitstream, 800 KHz bitstream)
 Adafruit_NeoPixel pixels(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -42,14 +44,13 @@ String client_message;
 // Auxiliar variables to store the current output state
 String output26State = "off";
 
-// Current time
-unsigned long currentTime = millis();
-// Previous time
-unsigned long previousTime = 0; 
-// Define timeout time in milliseconds (example: 2000ms = 2s)
-const long timeoutTime = 2000;
-
 int red, green, blue;
+
+
+//set time limit in case clients stop responding:
+unsigned long currentTime = millis();
+unsigned long previousTime = 0;
+const long timeoutTime = 2000;
 
 
 /* ## setup() -- runs once at startup ## */
@@ -88,8 +89,9 @@ void loop(){
   WiFiClient client = server.available();
   
   if (client){
-    if (client.connected()){
-      
+    currentTime = millis();
+    previousTime = currentTime;
+    if (client.connected() && currentTime - previousTime <= timeoutTime){
       int BUFFER_LEN = 2000;
       char buffer[BUFFER_LEN];
       read_http(buffer, BUFFER_LEN, client);
@@ -120,10 +122,11 @@ void loop(){
       }
 
       //await mode:
-      if(strlen(data) > 0 && data[0] == 'A'){
-        mode_1();
-      }else if (strlen(data) > 0 && data[0] == 'B'){
-        mode_2();
+      if(strlen(data) > 0 && data[0] == '0'){
+        mode_0();
+      }else if (strlen(data) > 0 && data[0] == '1'){
+        //wooop();
+        mode_nature();
       }
       
     }
@@ -204,10 +207,26 @@ void extract_data(char* httpFull, char* extractedDataBuffer){
  }
       
 
+void mode_0(){
+  set_led_color(0,0,0);
+}
+
 void mode_1(){
   set_led_color(255,0,0);
 }
 
 void mode_2(){
   set_led_color(0,255,0);
+}
+
+void mode_nature(){
+  int color[6][3] = {{153,255,204},{178,255,102},{0,204,102},{128,255,0},{0,255,128},{200,0,0}};
+  for (int w=0;w<250;w+=50) {
+    for (int i=0; i<300;i++){
+     pixels.setPixelColor(i,pixels.Color(color[w][0],color[w][1],color[w][2]));
+      pixels.show();
+      delay(100);
+    }
+    delay(5000);
+  }
 }
