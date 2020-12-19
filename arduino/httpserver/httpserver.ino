@@ -22,9 +22,9 @@ const char* ssid = "wlan-antenne";
 
 /* ## basic settings LED ## */
 
-#define LED_PIN         2               //data-pin to LED-Strip
+#define LED_PIN         2             //data-pin to LED-Strip
 #define LED_COUNT     300             //number of leds
-#define DELAYVAL      500                  //delayvalue between state transitions
+#define DELAYVAL      500             //delayvalue between state transitions - milliseconds
 
 
 
@@ -46,7 +46,7 @@ String client_message;
 // Auxiliar variables to store the current output state
 String output26State = "off";
 
-int red, green, blue;
+int ledMode, red, green, blue, ledDelay = 0;
 
 
 //set time limit in case clients stop responding:
@@ -89,7 +89,8 @@ void loop(){
 
   /* listen for incoming clients */
   WiFiClient client = server.available();
-  
+
+  /* receive and PARSE DATA from the INTERFACE */
   if (client){
     currentTime = millis();
     previousTime = currentTime;
@@ -104,32 +105,45 @@ void loop(){
       char data[BUFFER_LEN];
       extract_data(buffer, data);
 
+      /*currently the DEFAULT-MESSAGE looks like: m[MMM]rgb[RRR][GGG][BBB]d[DDDDD]
+      *brackets are not part of the Syntax but mark the inside as variable
+      *
+      */
+      //await ledmode:
+      //mMMM
+      if(strlen(data) > 0 && data[0] == 'm'){
+        int ledMode =  ASCII_to_Int(data[1])*100 + ASCII_to_Int(data[2])*10 + ASCII_to_Int(data[3]);
+        Serial.print("ledMode: ");
+        Serial.println(ledMode);
+      }
       //await rgb-values:
       //rgbRRRGGGBBB
-      if(strlen(data) > 0 && data[0] == 'r' && data[1] == 'g' && data[2] == 'b'){
-        int red = ASCII_to_Int(data[3])*100 + ASCII_to_Int(data[4])*10 + ASCII_to_Int(data[5]);
-        int green = ASCII_to_Int(data[6])*100 + ASCII_to_Int(data[7])*10 + ASCII_to_Int(data[8]);
-        int blue = ASCII_to_Int(data[9])*100 + ASCII_to_Int(data[10]) + ASCII_to_Int(data[11]);
-        Serial.print("[3] ");
-        Serial.print(data[3]);
-        Serial.print(" - ");
-        Serial.println(int(data[3]));
+      if(strlen(data) > 0 && data[4] == 'r' && data[5] == 'g' && data[6] == 'b'){
+        int red = ASCII_to_Int(data[7])*100 + ASCII_to_Int(data[8])*10 + ASCII_to_Int(data[9]);
+        int green = ASCII_to_Int(data[10])*100 + ASCII_to_Int(data[11])*10 + ASCII_to_Int(data[12]);
+        int blue = ASCII_to_Int(data[13])*100 + ASCII_to_Int(data[14]) + ASCII_to_Int(data[15]);
         Serial.print("red");
         Serial.println(red);
         Serial.print("green");
         Serial.println(green);
         Serial.print("blue");
-        Serial.println(blue);                
-        set_led_color(red, green, blue);
+        Serial.println(blue);
       }
-
-      //await mode:
+      //await delay-value:
+      //dDDDDD
+      if(strlen(data) > 0 && data[16] == 'd' ){
+        int ledDelay = ASCII_to_Int(data[17])*10000 + ASCII_to_Int(data[18])*1000 + ASCII_to_Int(data[19])*100 + ASCII_to_Int(data[20])*10 + ASCII_to_Int(data[21]);
+      }
+      
+      /* MODUS / FARBWECHSEL der LED */
+      
+/*      //await mode:
       if(strlen(data) > 0 && data[0] == '0'){
         mode_0();
       }else if (strlen(data) > 0 && data[0] == '1'){
         //wooop();
         mode_nature();
-      }
+      }*/
       
     }
     client.stop();
@@ -179,15 +193,25 @@ void extract_data(char* httpFull, char* extractedDataBuffer){
     client.println();
   }          
 
+ void set_led_color(int red, int green, int blue, int ledDelay){
+            //set pixels to given value:
+          for ( int i = 0; i < LED_COUNT ; i++ )
+          {
+            pixels.setPixelColor(i, pixels.Color( red, green, blue ));
+            pixels.show();
+            delay(ledDelay);
+          }
+ }         
+
  void set_led_color(int red, int green, int blue){
             //set pixels to given value:
           for ( int i = 0; i < LED_COUNT ; i++ )
           {
             pixels.setPixelColor(i, pixels.Color( red, green, blue ));
             pixels.show();
-            //delay(DELAYVAL);
+            delay(ledDelay);
           }
- }          
+ }
 
  void read_http(char* buffer, int bufLen, WiFiClient client){
     int count = 0;
