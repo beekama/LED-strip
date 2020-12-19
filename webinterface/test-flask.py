@@ -18,9 +18,9 @@ def modePage():
     else:
         mode = flask.request.args.get("mode")
     if (mode == "mode_1"):
-        requests.post('http://192.168.178.199/', data="Ar\n")
+        requests.post('http://192.168.178.199/', data="0r\n")
     elif (mode == "mode_2"):
-        requests.post('http://192.168.178.199/', data="Bg\n")
+        requests.post('http://192.168.178.199/', data="1g\n")
     else:
         mydata = mode+"\n"
         app.logger.info('my mydata is %s and mode is %s\n', mydata, mode)
