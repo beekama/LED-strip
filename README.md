@@ -13,3 +13,10 @@ Data input is parsed and send to the ESP32 as simple HTTP-message.
 ## Arduino Code ##
 The ESP32 also requires connection to the local network to receive the messages from the Raspberry-Pi.
 Additionally it needs to be physically connected to the LED-strip in order to transfer the data to the leds.
+
+
+## Requirements ##
+**jscolor**¹ for the color-pickers <br>
+**bootstrap**²
+1: https://jscolor.com/download/
+2: https://getbootstrap.com/docs/5.0/getting-started/download/
