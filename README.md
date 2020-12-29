@@ -17,6 +17,6 @@ Additionally it needs to be physically connected to the LED-strip in order to tr
 
 ## Requirements ##
 **jscolor**¹ for the color-pickers <br>
-**Bootstrap**² <br>
+**Bootstrap**² <br> <br>
 1: https://jscolor.com/download/ <br>
 2: https://getbootstrap.com/docs/5.0/getting-started/download/
