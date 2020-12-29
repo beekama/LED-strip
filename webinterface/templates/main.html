@@ -58,127 +58,41 @@
             </p>
           </div>
           <div class="col-xs-4 offset-md-2">
+            <!-- create 4 buttons per line -->
+            {% for counter in range(((buttons|length)/4)|round(0,'ceil')|int) %}
             <div class="col-xs-2">
               <p>
-                  <!-- input - submit color and delay and choose mode -->
-                  <button onclick="mode('001')"> once </button>
-                  <button onclick="mode('002')"> repeat </button>
-                  <button onclick="mode('003')"> nature </button>
-                  <button onclick="mode('000')"> repeat </button>
+                <!-- input -submit color and delay and choose mode -->
+                {% for secondCounter in range(4) %}
+                <button onclick="mode('001')">{{buttons[secondCounter+counter*4]["name"]}} </button>
+                {% endfor %}
               </p>
             </div>
-            <div class="col-xs-2">
-              <p>
-                  <!-- input - submit color and delay and choose mode -->
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-              </p>
-            </div>
-            <div class="col-xs-2">
-              <p>
-                  <!-- input - submit color and delay and choose mode -->
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-              </p>
-            </div>
-            <div class="col-xs-2">
-              <p>
-                  <!-- input - submit color and delay and choose mode -->
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-              </p>
-            </div>
-            <div class="col-xs-2">
-              <p>
-                  <!-- input - submit color and delay and choose mode -->
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-                  <button onclick="mode('000')"> repeat </button>
-              </p>
-            </div>
+            {% endfor %}
           </div>
         </div>
       </div>
       <h3 class="text-center">*Modes*</h3> </br>
       <div class="container">
         <div class="row justify-content-center">
+          <!-- create 5 buttons per line -->
+          {% for counter in range(((mButtons|length)/6)|round(0,'ceil')|int) %}
           <div class="col-xs-2">
             <p>
-                <!-- input - submit color and delay and choose mode -->
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button>
+              {% for secondCounter in range(5) %}
+              <button onclick="mode('001')">{{mButtons[secondCounter+counter*5]["name"]}} </button>
+              {% endfor %}
             </p>
           </div>
-          <div class="col-xs-2">
-            <p>
-                <!-- input - submit color and delay and choose mode -->
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button>
-            </p>
-          </div>
-          <div class="col-xs-2">
-            <p>
-                <!-- input - submit color and delay and choose mode -->
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button>
-            </p>
-          </div>
-          <div class="col-xs-2">
-            <p>
-                <!-- input - submit color and delay and choose mode -->
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button>
-            </p>
-          </div>
-          <div class="col-xs-2">
-            <p>
-                <!-- input - submit color and delay and choose mode -->
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button>
-            </p>
-          </div>
-          <div class="col-xs-2">
-            <p>
-                <!-- input - submit color and delay and choose mode -->
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button> <span class="brlarge"></span>
-                <button onclick="mode('000')"> repeat </button>
-            </p>
-          </div>
+          {% endfor %}
         </div>
       </div>
         <div>
-            <!-- buttons - for predefined functions  -->
-            <button onclick="mode('000')"> nature </button>
-            <p id="test" >
-            </p>
-            <p>
-                <!-- input - for color picking -->
-                <input id="colorpickerNoDelay" data-jscolor="{preset:'large dark', value:'rgba(255,200,50,0.8)', onChange:'set_picker(this)'}" name="mode"></input>
-                <input id="cp_submit" type="submit" onclick="send_rgb_mode()"></input>
-            </p>
+
             <script>
                 /* input-functions - send rgb-mode */
                 var color = "000000000";
-                var delay = '00000';
+                var delay = '0';
 
                 /* delay */
                 function setDelay(thisDelay){
@@ -188,7 +102,7 @@
 
                 /* mode */
                 function mode(smode){
-                  fetch (window.location.origin + "/API" + "?mode=" + smode + "rgb" + color + "d" + delay);
+                  fetch (window.location.origin + "/API" + "?mode=m" + smode + "rgb" + color + "d" + delay);
                 }
 
                 //first mode - only colors:
