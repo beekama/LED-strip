@@ -12,7 +12,11 @@ Data input is parsed and send to the ESP32 as simple HTTP-message.
 
 ## Arduino Code ##
 The ESP32 also requires connection to the local network to receive the messages from the Raspberry-Pi.
-Additionally it needs to be physically connected to the LED-strip in order to transfer the data to the leds.
+Additionally it needs to be physically connected to the LED-strip in order to transfer the data to the leds.<br><br>
+With **OTA**(over the air)-update we no longer have to rely on a cable to load a new sketch onto the ESP.<br>
+However there are two things to keep in mind:
+* the first OTA-code has to be transferred via cable
+* OTA requires a firewall-rule for espota.exe (at least on windows)
 
 
 ## Requirements ##
