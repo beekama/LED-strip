@@ -1,52 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link href="static/css/bootstrap.min.css" rel="stylesheet"/>
+      <link href="static/css/customized.css" rel="stylesheet"/>
         <title>LED-Interface</title>
-        <script>
-            /* buttons - send 'mode' for predefined functions */
-            function mode_1(){
-                fetch (window.location.origin + "/API" + "?mode=mode_1")
-            }    
-            function mode_2(){
-                fetch (window.location.origin + "/API" + "?mode=mode_2")
-            }    
-        </script> 
-        <script type="text/javascript" src="{{ url_for('static', filename = 'jscolor.js') }}">
+        <script type="text/javascript" src="{{ url_for('static', filename = '/js/jscolor.js') }}">
         </script>
     </head>
     <body>
-        <div>
-            <!-- buttons - for predefined functions  -->
-            <button onclick="mode_1()"> aus die maus </button>
-            <button onclick="mode_2()"> nature </button>
-            <p id="test" >
-            </p>
+        <!-- navigation bar -->
+      <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">  LED-Interface </a>
+          </div>
+          <ul class="nav navbar-nav navbar-right">
+            <button class="btn btn-light" onclick="mode('000')"> AUS </button>
+          </ul>
+        </div>
+      </nav>
+    </br>
+      <h3 class="text-center">*Color*</h3>
+    </br>
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-xs-6">
             <p>
                 <!-- input - for color picking -->
-                Choose a beautiful color!^^ :
-                <input id="colorpicker" data-jscolor="{preset:'large dark', value:'rgba(255,200,50,0.8)', onChange:'set_picker(this)'}" name="mode"></input>
-                <input id="cp_submit" type="submit" onclick="send_rgb_mode()"></input>
+                <input id="colorNoDelay" data-jscolor="{preset:'large dark', value:'rgba(255,200,50,0.8)', onChange:'colorMode(this)' }" name="colorNoDelay"></input>
             </p>
+          </div>
+        </div>
+      </div>
+      <h3 class="text-center">*Color and Delay*</h3>
+    </br>
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-xs-6">
+            <p>
+                <!-- label - for color picking and delay -->
+                <span class="d-none d-md-inline">
+                  Color:&nbsp; </br> </br>
+                  <label for="delaySlider"> Delay from 0 to 9999 (ms):&nbsp;  </label> <span class="brlarge"></span><span class="brlarge"></span><span class="brlarge"></span><span class="brlarge"></span><span class="brlarge"></span>
+                </span>
+            </p>
+          </div>
+          <div class="col-xs-3">
+            <p>
+                <!-- input - for color picking and delay -->
+                <span class="d-inline d-md-none">Color:&nbsp; </span>
+                <input id="colorDelay" data-jscolor="{preset:'large dark', value:'rgba(255,200,50,0.8)', onChange:'setColor(this)' }" name="colorDelay"></input> </br> </br>
+                <span class="d-inline d-md-none">Delay ms (0-9999):&nbsp;  </span>
+                <input type="range" onChange=setDelay(this) min="0" max="9999" name="delaySlider" />
+            </p>
+          </div>
+          <div class="col-xs-4 offset-md-2">
+            <!-- create 4 buttons per line -->
+            {% for counter in range(((buttons|length)/4)|round(0,'ceil')|int) %}
+            <div class="col-xs-2">
+              <p>
+                <!-- input -submit color and delay and choose mode -->
+                {% for secondCounter in range(4) %}
+                <button onclick="mode('001')">{{buttons[secondCounter+counter*4]["name"]}} </button>
+                {% endfor %}
+              </p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <h3 class="text-center">*Modes*</h3> </br>
+      <div class="container">
+        <div class="row justify-content-center">
+          <!-- create 5 buttons per line -->
+          {% for counter in range(((mButtons|length)/6)|round(0,'ceil')|int) %}
+          <div class="col-xs-2">
+            <p>
+              {% for secondCounter in range(5) %}
+              <button onclick="mode('001')">{{mButtons[secondCounter+counter*5]["name"]}} </button>
+              {% endfor %}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+        <div>
+
             <script>
                 /* input-functions - send rgb-mode */
-                var picker;
-                function set_picker(thisPicker){
-                    picker = thisPicker;
+                var color = "000000000";
+                var delay = '0';
+
+                /* delay */
+                function setDelay(thisDelay){
+                  /* integer to string - formatted DDDDD */
+                  delay = ('00000' + thisDelay).slice(-5);
                 }
-                function send_rgb_mode() {
-                    fetch (window.location.origin + '/API' + "?mode=rgb" + get_rgb_string(Math.round(picker.channels.r)) + get_rgb_string(Math.round(picker.channels.g)) + get_rgb_string(Math.round(picker.channels.b))) }
-                function get_rgb_string(colorChannel){
-                    if (colorChannel < 10){
-                        return "00"+colorChannel;
-                    } else if (colorChannel < 100){
-                        return "0" + colorChannel;
-                    } else{
-                        return colorChannel;
-                    }
+
+                /* mode */
+                function mode(smode){
+                  fetch (window.location.origin + "/API" + "?mode=m" + smode + "rgb" + color + "d" + delay);
+                }
+
+                //first mode - only colors:
+                function colorMode(picker){
+                  setColor(picker);
+                  mode('001');
+                }
+
+                /* color-picker-functions */
+                function setColor(picker) {
+                  color = getRgbString(Math.round(picker.channels.r)) + getRgbString(Math.round(picker.channels.g)) + getRgbString(Math.round(picker.channels.b));
+                }
+
+
+                function getRgbString(colorChannel){
+                  return ('000' + colorChannel).slice(-3);
                 }
             </script>
         </div>
     </body>
 </html>
-
-
