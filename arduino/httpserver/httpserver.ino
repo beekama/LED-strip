@@ -1,6 +1,7 @@
 
 
 
+
 /* #################################################### */
 /*
  *      Arduino Webserver to control LED-strip
@@ -15,10 +16,13 @@
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
+#include <ArduinoOTA.h>
+#include "OTA.h"
+
 // network credentials
 #include "password.h"
-const char *password = WIFI_PASSWORD;
-const char* ssid = "wlan-antenne";
+char *password = WIFI_PASSWORD;
+char* ssid = "wlan-antenne";
 
 /* ## basic settings LED ## */
 
@@ -58,17 +62,24 @@ const long timeoutTime = 2000;
 /* ## setup() -- runs once at startup ## */
 void setup() 
 {
+  
   // initialize serial interface:
    Serial.begin(115200);
    Serial.print("Connecting to ");
    Serial.println(ssid);
+   
    //connecting to wifi network:
+   WiFi.mode(WIFI_STA);
    WiFi.begin(ssid, password);
    while (WiFi.status() != WL_CONNECTED)
    {
       delay(500);
       Serial.print(".");
    }
+    
+   // initialize OTA:
+   setupOTA("LED_esp32", password);
+  
    //print ip-address and start server:
    Serial.print("Interface at (ip-address): ");
    Serial.println(WiFi.localIP());
@@ -83,6 +94,9 @@ void setup()
 
 /* ## loop() -- loops continuously as long is bord is running ## */
 void loop(){
+
+  /* can be called multiple times - needs to be called frequently */
+  ArduinoOTA.handle();
   
   /* set pixel-value to 0 */
   pixels.clear();
@@ -104,7 +118,11 @@ void loop(){
 
       char data[BUFFER_LEN];
       extract_data(buffer, data);
+      Serial.print("data: ");
+      Serial.println(data);
 
+      
+      
       /*currently the DEFAULT-MESSAGE looks like: m[MMM]rgb[RRR][GGG][BBB]d[DDDDD]
       *brackets are not part of the Syntax but mark the inside as variable
       *
@@ -112,16 +130,16 @@ void loop(){
       //await ledmode:
       //mMMM
       if(strlen(data) > 0 && data[0] == 'm'){
-        int ledMode =  ASCII_to_Int(data[1])*100 + ASCII_to_Int(data[2])*10 + ASCII_to_Int(data[3]);
+        ledMode =  ASCII_to_Int(data[1])*100 + ASCII_to_Int(data[2])*10 + ASCII_to_Int(data[3]);
         Serial.print("ledMode: ");
         Serial.println(ledMode);
       }
       //await rgb-values:
       //rgbRRRGGGBBB
       if(strlen(data) > 0 && data[4] == 'r' && data[5] == 'g' && data[6] == 'b'){
-        int red = ASCII_to_Int(data[7])*100 + ASCII_to_Int(data[8])*10 + ASCII_to_Int(data[9]);
-        int green = ASCII_to_Int(data[10])*100 + ASCII_to_Int(data[11])*10 + ASCII_to_Int(data[12]);
-        int blue = ASCII_to_Int(data[13])*100 + ASCII_to_Int(data[14]) + ASCII_to_Int(data[15]);
+        red = ASCII_to_Int(data[7])*100 + ASCII_to_Int(data[8])*10 + ASCII_to_Int(data[9]);
+        green = ASCII_to_Int(data[10])*100 + ASCII_to_Int(data[11])*10 + ASCII_to_Int(data[12]);
+        blue = ASCII_to_Int(data[13])*100 + ASCII_to_Int(data[14]) + ASCII_to_Int(data[15]);
         Serial.print("red");
         Serial.println(red);
         Serial.print("green");
@@ -132,23 +150,48 @@ void loop(){
       //await delay-value:
       //dDDDDD
       if(strlen(data) > 0 && data[16] == 'd' ){
-        int ledDelay = ASCII_to_Int(data[17])*10000 + ASCII_to_Int(data[18])*1000 + ASCII_to_Int(data[19])*100 + ASCII_to_Int(data[20])*10 + ASCII_to_Int(data[21]);
+        ledDelay = ASCII_to_Int(data[17])*10000 + ASCII_to_Int(data[18])*1000 + ASCII_to_Int(data[19])*100 + ASCII_to_Int(data[20])*10 + ASCII_to_Int(data[21]);
       }
+
       
+      //set modus:
+      Serial.println("set ledmode");
+      setLed(ledMode, red, green, blue, ledDelay);
+
       /* MODUS / FARBWECHSEL der LED */
       
-/*      //await mode:
+      //await mode:
       if(strlen(data) > 0 && data[0] == '0'){
-        mode_0();
+        mode_002();
       }else if (strlen(data) > 0 && data[0] == '1'){
         //wooop();
         mode_nature();
-      }*/
+      }
       
     }
     client.stop();
   }      
 }
+
+/* check if new commands are available *
+ */
+boolean newCommandAvailable(){
+  return (Serial.available()>0)?true:false;
+}
+
+/* set led *
+ *  takes parsed message and sets led to corresponding values
+ */
+void setLed(int ledmode, int red, int green, int blue, int leddelay){
+  Serial.println("choosing ledmode");
+  switch (ledmode){
+    case 0: mode_AUS(); break;
+    case 1: set_led_color(red, green, blue, leddelay); break;
+    case 2: mode_nature(); break;
+    default: mode_AUS();
+  }
+}
+
 
 /* parse ASCII-character to Integer */
 int ASCII_to_Int(char c){
@@ -193,16 +236,30 @@ void extract_data(char* httpFull, char* extractedDataBuffer){
     client.println();
   }          
 
+/* set color of led to given colors and given delay*
+ *  param: (int) red, green, blue, delay_in_ms
+ */
  void set_led_color(int red, int green, int blue, int ledDelay){
             //set pixels to given value:
+            Serial.println("set led to");
+            Serial.println(red);
+            Serial.println(green);
+            Serial.println(blue);
+            Serial.println(ledDelay);
+
           for ( int i = 0; i < LED_COUNT ; i++ )
           {
             pixels.setPixelColor(i, pixels.Color( red, green, blue ));
-            pixels.show();
+            if (ledDelay == 0 ){} else pixels.show();
             delay(ledDelay);
           }
+          pixels.show();
+          Serial.println("blob");
  }         
 
+/* set color of led to given colors and default delay*
+ *  param: (int) red, green, blue
+ */
  void set_led_color(int red, int green, int blue){
             //set pixels to given value:
           for ( int i = 0; i < LED_COUNT ; i++ )
@@ -213,6 +270,9 @@ void extract_data(char* httpFull, char* extractedDataBuffer){
           }
  }
 
+/* read entire http-stream into given buffer
+ *  
+ */
  void read_http(char* buffer, int bufLen, WiFiClient client){
     int count = 0;
     bool lineBlank = true;
@@ -233,22 +293,27 @@ void extract_data(char* httpFull, char* extractedDataBuffer){
  }
       
 
-void mode_0(){
+void mode_AUS(){
+  Serial.println("aus die maus");
   set_led_color(0,0,0);
 }
 
-void mode_1(){
-  set_led_color(255,0,0);
+
+void mode_002(){
+  set_led_color(0,255,0);
 }
 
-void mode_2(){
-  set_led_color(0,255,0);
+void mode_003(){
+  set_led_color(0,222,211);
 }
 
 void mode_nature(){
   int color[6][3] = {{153,255,204},{178,255,102},{0,204,102},{128,255,0},{0,255,128},{200,0,0}};
   for (int w=0;w<250;w+=50) {
     for (int i=0; i<300;i++){
+      if (newCommandAvailable()){
+        return;
+      }
      pixels.setPixelColor(i,pixels.Color(color[w][0],color[w][1],color[w][2]));
       pixels.show();
       delay(100);
