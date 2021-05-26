@@ -16,8 +16,7 @@ Additionally it needs to be physically connected to the LED-strip in order to tr
 With **OTA**(over the air)-update we no longer have to rely on a cable to load a new sketch onto the ESP.<br>
 However there are two things to keep in mind:
 * the first OTA-code has to be transferred via cable
-* OTA requires a firewall-rule for espota.exe (at least on windows)
-
+* OTA requires a firewall-rule for espota.exe on Windows 
 
 ## Requirements ##
 **jscolor**¹ for the color-pickers <br>
