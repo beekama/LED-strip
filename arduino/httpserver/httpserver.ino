@@ -16,6 +16,10 @@
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
+#include <pthread.h>
+pthread_t modeThread;
+   
+
 #include <ArduinoOTA.h>
 #include "OTA.h"
 
@@ -24,22 +28,23 @@
 char *password = WIFI_PASSWORD;
 char* ssid = "wlan-antenne";
 
-/* ## basic settings LED ## */
+// global flags
+int newCommand = 0;
+
+/* ## basic settings LED ## -------------------------------------------------------------------*/
 
 #define LED_PIN         2             //data-pin to LED-Strip
 #define LED_COUNT     300             //number of leds
 #define DELAYVAL      500             //delayvalue between state transitions - milliseconds
-
-
 
 // Declare our NeoPixel strip object:
 // args: number of leds, datapin, pixel type flags (gbr-bitstream, 800 KHz bitstream)
 Adafruit_NeoPixel pixels(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 
-/* ## basic settings SERVER ## */
 
 
+/* ## basic settings SERVER ## -----------------------------------------------------------------*/
 
 // create server that listens on port @parameter:
 WiFiServer server(80);
@@ -59,7 +64,7 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 
 
-/* ## setup() -- runs once at startup ## */
+/* ## setup() -- runs once at startup ## ---------------------------------------------------------*/
 void setup() 
 {
   
@@ -91,15 +96,11 @@ void setup()
 
 
 
-
-/* ## loop() -- loops continuously as long is bord is running ## */
+/* ## loop() -- loops continuously as long is bord is running ## ----------------------------------*/
 void loop(){
 
   /* can be called multiple times - needs to be called frequently */
   ArduinoOTA.handle();
-  
-  /* set pixel-value to 0 */
-  pixels.clear();
 
   /* listen for incoming clients */
   WiFiClient client = server.available();
@@ -109,6 +110,8 @@ void loop(){
     currentTime = millis();
     previousTime = currentTime;
     if (client.connected() && currentTime - previousTime <= timeoutTime){
+      Serial.println("message incoming");
+      newCommand = 1;
       int BUFFER_LEN = 2000;
       char buffer[BUFFER_LEN];
       read_http(buffer, BUFFER_LEN, client);
@@ -155,19 +158,20 @@ void loop(){
 
       
       //set modus:
+      pixels.clear();
       Serial.println("set ledmode");
       setLed(ledMode, red, green, blue, ledDelay);
 
       /* MODUS / FARBWECHSEL der LED */
       
-      //await mode:
+   /*   //await mode:
       if(strlen(data) > 0 && data[0] == '0'){
         mode_002();
       }else if (strlen(data) > 0 && data[0] == '1'){
         //wooop();
-        mode_nature();
+        mode_nature(NULL);
       }
-      
+      */
     }
     client.stop();
   }      
@@ -186,8 +190,19 @@ void setLed(int ledmode, int red, int green, int blue, int leddelay){
   Serial.println("choosing ledmode");
   switch (ledmode){
     case 0: mode_AUS(); break;
-    case 1: set_led_color(red, green, blue, leddelay); break;
-    case 2: mode_nature(); break;
+    case 1: set_led_color(red,green, blue, ledDelay); break;    //todo parallel
+    case 2: {
+            newCommand = 0;
+            pthread_create(&modeThread, NULL, &mode_nature, NULL);
+            pthread_detach(modeThread);
+            break;
+            }
+    case 3:{
+            newCommand = 0;
+            pthread_create(&modeThread, NULL, &mode_kaffee, NULL);
+            pthread_detach(modeThread);
+            break;
+            }
     default: mode_AUS();
   }
 }
@@ -307,17 +322,51 @@ void mode_003(){
   set_led_color(0,222,211);
 }
 
-void mode_nature(){
+void *mode_nature(void  * arg){
   int color[6][3] = {{153,255,204},{178,255,102},{0,204,102},{128,255,0},{0,255,128},{200,0,0}};
   for (int w=0;w<250;w+=50) {
-    for (int i=0; i<300;i++){
-      if (newCommandAvailable()){
-        return;
+    for (int i=0; i<LED_COUNT;i++){
+      if (newCommand == 1){
+        newCommand = 0;
+        Serial.println("return since new command incoming");
+        return NULL;
       }
      pixels.setPixelColor(i,pixels.Color(color[w][0],color[w][1],color[w][2]));
+     //pixels.setPixelColor(i, pixels.Color(255,0,0));
+     Serial.println("puh set color and check for new command");
       pixels.show();
       delay(100);
     }
     delay(5000);
+  }
+}
+
+void *mode_kaffee(void * arg){
+  int colorKaffee[3] = {200, 64, 13};
+  while(1){
+    for(int i=100;i>=50;i-=10){
+      for (int j=0; j< LED_COUNT; j++){
+        if (newCommand == 1){
+        newCommand = 0;
+        Serial.println("return since new command incoming");
+        return NULL;
+        }
+        pixels.setPixelColor(j, pixels.Color(colorKaffee[0]*i/100, colorKaffee[1]*i/100, colorKaffee[2]*i/100));
+        pixels.show();
+      }
+      delay(100);
+    }
+    for(int i=50;i<=100;i+=10){
+      for (int j=0; j< LED_COUNT; j++){
+        if (newCommand == 1){
+        newCommand = 0;
+        Serial.println("return since new command incoming");
+        return NULL;
+        }
+        pixels.setPixelColor(j, pixels.Color(colorKaffee[0]*i/100, colorKaffee[1]*i/100, colorKaffee[2]*i/100));
+        pixels.show();
+      }
+      delay(100);
+    }
   }
 }
